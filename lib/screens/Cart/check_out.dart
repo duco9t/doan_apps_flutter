@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:HDTech/screens/Checkout/check_out_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final formatCurrency = NumberFormat.currency(
     locale: 'vi_VN', symbol: 'VNĐ'); // Format currency in VND
@@ -13,9 +14,13 @@ class CheckOutBox extends StatelessWidget {
     super.key,
   });
 
+  Future<String?> _getUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('id'); // Lấy giá trị userId từ SharedPreferences
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Sử dụng Consumer để lắng nghe thay đổi từ CartProvider
     return Consumer<CartProvider>(
       builder: (context, provider, child) {
         return Container(
@@ -45,8 +50,7 @@ class CheckOutBox extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    formatCurrency
-                        .format(provider.subtotal), // Hiển thị subtotal
+                    formatCurrency.format(provider.subtotal), // Hiển thị subtotal
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -68,42 +72,79 @@ class CheckOutBox extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    formatCurrency.format(
-                        provider.totalPrice), // Hiển thị tổng giá trị giỏ hàng
+                    formatCurrency.format(provider.totalPrice), // Hiển thị tổng giá trị giỏ hàng
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.red
+                      color: Colors.red,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
-               ElevatedButton(
-                onPressed: () {
-                  // Lấy userId hoặc cartId từ provider hoặc bất kỳ dữ liệu cần thiết nào
-                  final userId = "user_id"; // Thay thế bằng dữ liệu thực tế của bạn
+              FutureBuilder<String?>(
+                future: _getUserId(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return ElevatedButton(
+                      onPressed: null, // Vô hiệu hóa khi đang tải
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey,
+                        minimumSize: const Size(double.infinity, 55),
+                      ),
+                      child: const Text(
+                        "Loading...",
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
+                  }
 
-                  // Chuyển hướng đến trang chi tiết giỏ hàng
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CheckOutScreen(cartId: userId), // Truyền cartId hoặc userId
+                  final userId = snapshot.data;
+                  if (userId == null || userId.isEmpty) {
+                    return ElevatedButton(
+                      onPressed: null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey,
+                        minimumSize: const Size(double.infinity, 55),
+                      ),
+                      child: const Text(
+                        "User not logged in",
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
+                  }
+
+                  return ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CheckOutScreen(cartId: userId),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: kprimaryColor,
+                      minimumSize: const Size(double.infinity, 55),
+                    ),
+                    child: const Text(
+                      "Check out",
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   );
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: kprimaryColor,
-                  minimumSize: const Size(double.infinity, 55),
-                ),
-                child: const Text(
-                  "Check out",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
               ),
             ],
           ),

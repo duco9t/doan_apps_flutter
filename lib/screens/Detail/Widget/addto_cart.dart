@@ -18,6 +18,7 @@ class AddToCart extends StatefulWidget {
 class _AddToCartState extends State<AddToCart> {
   int currentIndex = 1;
   bool _isLoggedIn = false;
+
   @override
   void initState() {
     super.initState();
@@ -47,11 +48,10 @@ class _AddToCartState extends State<AddToCart> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<CartProvider>(context, listen: false);
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15),
       child: Container(
@@ -62,7 +62,6 @@ class _AddToCartState extends State<AddToCart> {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 15),
         alignment: Alignment.center,
-        
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -73,7 +72,6 @@ class _AddToCartState extends State<AddToCart> {
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: Colors.white, width: 2),
               ),
-              
               child: Row(
                 children: [
                   IconButton(
@@ -85,7 +83,6 @@ class _AddToCartState extends State<AddToCart> {
                     iconSize: 18,
                     icon: const Icon(Icons.remove, color: Colors.white),
                   ),
-                  
                   const SizedBox(width: 5),
                   Text(
                     currentIndex.toString(),
@@ -94,7 +91,6 @@ class _AddToCartState extends State<AddToCart> {
                       color: Colors.white,
                     ),
                   ),
-                  
                   const SizedBox(width: 5),
                   IconButton(
                     onPressed: () {
@@ -108,159 +104,168 @@ class _AddToCartState extends State<AddToCart> {
                 ],
               ),
             ),
-            
-GestureDetector(
-  onTap: () async {
-    // Kiểm tra xem người dùng có đăng nhập hay không
-    if (!_isLoggedIn) {
-      // Nếu chưa đăng nhập, yêu cầu người dùng đăng nhập
-      bool shouldLogin = await _showLoginDialog(context); // Hiển thị hộp thoại yêu cầu đăng nhập
-      if (!shouldLogin) return; // Nếu người dùng không muốn đăng nhập, không làm gì
-      await _navigateToLogin(); // Điều hướng đến màn hình đăng nhập
-      if (!_isLoggedIn) return; // Nếu sau khi đăng nhập người dùng vẫn chưa đăng nhập, không tiếp tục
-    }
 
-    // Lấy userId từ SharedPreferences
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString('id'); // Lấy userId đã lưu
+            GestureDetector(
+              onTap: () async {
+                // Kiểm tra xem người dùng có đăng nhập hay không
+                if (!_isLoggedIn) {
+                  // Nếu chưa đăng nhập, yêu cầu người dùng đăng nhập
+                  bool shouldLogin = await _showLoginDialog(
+                      context); // Hiển thị hộp thoại yêu cầu đăng nhập
+                  if (!shouldLogin)
+                    return; // Nếu người dùng không muốn đăng nhập, không làm gì
+                  await _navigateToLogin(); // Điều hướng đến màn hình đăng nhập
+                  if (!_isLoggedIn)
+                    return; // Nếu sau khi đăng nhập người dùng vẫn chưa đăng nhập, không tiếp tục
+                }
 
-    if (userId == null) {
-      // Nếu không có userId, yêu cầu người dùng đăng nhập lại hoặc thông báo lỗi
-      
-      return;
-    }
+                // Lấy userId từ SharedPreferences
+                final prefs = await SharedPreferences.getInstance();
+                final userId = prefs.getString('id'); // Lấy userId đã lưu
 
-    // Nếu người dùng đã đăng nhập, thêm sản phẩm vào giỏ hàng
-    final productId = widget.popularComputerBar.id?.toString(); // Lấy ID sản phẩm từ đối tượng popularComputerBar
-    final quantity = currentIndex;
+                if (userId == null) {
+                  // Nếu không có userId, yêu cầu người dùng đăng nhập lại hoặc thông báo lỗi
 
-    // Gọi CartProvider để thêm sản phẩm vào giỏ hàng
-    if (productId != null) {
-      provider.addItem(userId, productId, quantity);
-    }
+                  return;
+                }
 
-    // Thêm thông báo sau khi thêm vào giỏ hàng
-    // ignore: use_build_context_synchronously
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Sản phẩm đã được thêm vào giỏ hàng')),
-    );
-  },
-  child: Container(
-    height: 55,
-    decoration: BoxDecoration(
-      color: kprimaryColor,
-      borderRadius: BorderRadius.circular(50),
-    ),
-    padding: const EdgeInsets.symmetric(horizontal: 50),
-    alignment: Alignment.center,
-    child: const Text(
-      "Add to Cart",
-      style: TextStyle(
-        color: Colors.white,
-        fontWeight: FontWeight.bold,
-        fontSize: 20,
-      ),
-    ),
-  ),
-),
+                // Nếu người dùng đã đăng nhập, thêm sản phẩm vào giỏ hàng
+                final productId = widget.popularComputerBar.id
+                    ?.toString(); // Lấy ID sản phẩm từ đối tượng popularComputerBar
+                final quantity = currentIndex;
 
+                // Gọi CartProvider để thêm sản phẩm vào giỏ hàng
+                if (productId != null) {
+                  provider.addItem(userId, productId, quantity);
+                }
+
+                // Thêm thông báo sau khi thêm vào giỏ hàng
+                // ignore: use_build_context_synchronously
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('Sản phẩm đã được thêm vào giỏ hàng')),
+                );
+              },
+              child: Container(
+                height: 55,
+                decoration: BoxDecoration(
+                  color: kprimaryColor,
+                  borderRadius: BorderRadius.circular(50),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 50),
+                alignment: Alignment.center,
+                child: const Text(
+                  "Add to Cart",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 }
+
 // Hiển thị hộp thoại yêu cầu đăng nhập
 Future<bool> _showLoginDialog(BuildContext context) async {
   return await showDialog<bool>(
-    context: context,
-    barrierDismissible: false, // Ngăn không cho đóng hộp thoại khi bấm ra ngoài
-    builder: (context) {
-      return Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-        elevation: 5,
-        backgroundColor: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Tiêu đề
-              Text(
-                "Login Required",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 10),
-              
-              // Nội dung hộp thoại
-              Text(
-                "You need to be logged in to add items to the cart. Would you like to log in now?",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.grey[600],
-                ),
-              ),
-              const SizedBox(height: 20),
-              
-              // Các nút lựa chọn
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+        context: context,
+        barrierDismissible:
+            false, // Ngăn không cho đóng hộp thoại khi bấm ra ngoài
+        builder: (context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            elevation: 5,
+            backgroundColor: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Nút "No"
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(false); // Nếu người dùng chọn "No"
-                    },
-                    child: Text(
-                      "No",
-                      style: TextStyle(
-                        color: Colors.red[400],
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 30),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
+                  // Tiêu đề
+                  Text(
+                    "Login Required",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: Colors.black,
                     ),
                   ),
-                  const SizedBox(width: 20),
-                  
-                  // Nút "Yes"
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(true); // Nếu người dùng chọn "Yes"
-                    },
-                    child: Text(
-                      "Yes",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  const SizedBox(height: 10),
+
+                  // Nội dung hộp thoại
+                  Text(
+                    "You need to be logged in to add items to the cart. Would you like to log in now?",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey[600],
                     ),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 30),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Các nút lựa chọn
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Nút "No"
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context)
+                              .pop(false); // Nếu người dùng chọn "No"
+                        },
+                        child: Text(
+                          "No",
+                          style: TextStyle(
+                            color: Colors.red[400],
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 30),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 20),
+
+                      // Nút "Yes"
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context)
+                              .pop(true); // Nếu người dùng chọn "Yes"
+                        },
+                        child: Text(
+                          "Yes",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 30),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
-        ),
-      );
-    },
-  ) ?? false; // Trả về false nếu người dùng không chọn gì
+            ),
+          );
+        },
+      ) ??
+      false; // Trả về false nếu người dùng không chọn gì
 }

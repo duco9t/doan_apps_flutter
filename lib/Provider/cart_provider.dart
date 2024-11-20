@@ -88,6 +88,7 @@ class CartProvider with ChangeNotifier {
     try {
       final index =
           _cartItems.indexWhere((item) => item.productId == productId);
+
       if (index != -1) {
         final currentQuantity = _cartItems[index].quantity;
         final product = _cartItems[index];

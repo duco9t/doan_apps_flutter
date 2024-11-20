@@ -1,6 +1,7 @@
+import 'package:HDTech/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:HDTech/models/checkout_service.dart'; 
+import 'package:HDTech/models/checkout_service.dart';
 import 'package:HDTech/models/checkout_model.dart'; // Đảm bảo import đúng
 
 final formatCurrency = NumberFormat.currency(locale: 'vi_VN', symbol: 'VNĐ');
@@ -12,7 +13,7 @@ class CheckOutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userId = "user_id";  // Lấy userId từ context hoặc provider
+    final userId = cartId; // Lấy userId từ tham số đầu vào
 
     return FutureBuilder<CheckoutDetails>(
       future: CheckoutService.getCheckoutDetails(userId),
@@ -34,36 +35,56 @@ class CheckOutScreen extends StatelessWidget {
         }
 
         final checkoutDetails = snapshot.data!;
+        final totalPrice = checkoutDetails.totalPrice?.toDouble() ?? 0.0;
+        final vatOrder = checkoutDetails.vatOrder?.toDouble() ?? 0.0;
+        final shippingFee = checkoutDetails.shippingFee?.toDouble() ?? 0.0;
+        final orderTotal = checkoutDetails.orderTotal?.toDouble() ?? 0.0;
 
         return Scaffold(
-          appBar: AppBar(
-            title: const Text("Thanh toán"),
-            centerTitle: true,
-            backgroundColor: Colors.white,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-          ),
+  appBar: AppBar(
+    title: const Text(
+      "ORDER DETAILS",
+      style: TextStyle(fontWeight: FontWeight.bold), // Đảm bảo tiêu đề AppBar in đậm
+    ),
+    centerTitle: true,
+    backgroundColor: Colors.white,
+    leading: IconButton(
+      icon: const Icon(Icons.arrow_back_ios),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    ),
+  ),
           body: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  "Thông tin đơn hàng",
+                  "Order Information",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                 ),
-                const SizedBox(height: 10),
-                _buildInputField("Tên", controller: TextEditingController(text: "Nguyễn Văn A")),
-                _buildInputField("Số điện thoại", controller: TextEditingController(text: "123456789")),
-                _buildInputField("Email", controller: TextEditingController(text: "example@mail.com")),
-                _buildInputField("Địa chỉ giao hàng", controller: TextEditingController(text: "Số 123, Hà Nội")),
+                const SizedBox(height: 20), 
+                Padding(
+  padding: const EdgeInsets.only(bottom: 15.0),
+  child: _buildInputField("Name", controller: TextEditingController()), 
+),
+Padding(
+  padding: const EdgeInsets.only(bottom: 15.0), 
+  child: _buildInputField("Phone Number", controller: TextEditingController()), 
+),
+Padding(
+  padding: const EdgeInsets.only(bottom: 15.0), 
+  child: _buildInputField("Email", controller: TextEditingController()), 
+),
+Padding(
+  padding: const EdgeInsets.only(bottom: 15.0), 
+  child: _buildInputField("Delivery Address", controller: TextEditingController()), 
+),
+
                 const SizedBox(height: 20),
                 const Text(
-                  "Chi tiết đơn hàng",
+                  "Order Details",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                 ),
                 const SizedBox(height: 10),
@@ -78,11 +99,11 @@ class CheckOutScreen extends StatelessWidget {
                           style: const TextStyle(fontSize: 18),
                         ),
                         subtitle: Text(
-                          "Số lượng: ${product.quantity}",
+                          "Quantity: ${product.quantity}",
                           style: const TextStyle(fontSize: 16),
                         ),
                         trailing: Text(
-                          formatCurrency.format(product.total),
+                          formatCurrency.format(product.total?.toDouble() ?? 0.0), // Sử dụng giá trị mặc định
                           style: const TextStyle(fontSize: 16),
                         ),
                       );
@@ -90,28 +111,27 @@ class CheckOutScreen extends StatelessWidget {
                   ),
                 ),
                 const Divider(),
-                _buildSummaryRow("Tổng giá trị", checkoutDetails.totalPrice),
-                _buildSummaryRow("VAT", checkoutDetails.vatOrder),
-                _buildSummaryRow("Phí vận chuyển", checkoutDetails.shippingFee),
+                _buildSummaryRow("Total Value", totalPrice),
+                _buildSummaryRow("VAT", vatOrder),
+                _buildSummaryRow("Shipping Fee", shippingFee),
                 const Divider(),
                 _buildSummaryRow(
-                  "Tổng cộng",
-                  checkoutDetails.orderTotal,
+                  "Grand Total",
+                  orderTotal,
                   isBold: true,
-                  color: Colors.red,
+                  color: kprimaryColor,
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
-                    // Xử lý thanh toán
                     _handlePayment(context);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
+                    backgroundColor:kprimaryColor,
                     minimumSize: const Size(double.infinity, 55),
                   ),
                   child: const Text(
-                    "Thanh toán ngay",
+                    "Pay Now",
                     style: TextStyle(
                       fontSize: 20,
                       color: Colors.white,
@@ -142,7 +162,7 @@ class CheckOutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryRow(String label, double value, {bool isBold = false, Color? color}) {
+  Widget _buildSummaryRow(String label, double? value, {bool isBold = false, Color? color}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -154,7 +174,7 @@ class CheckOutScreen extends StatelessWidget {
           ),
         ),
         Text(
-          formatCurrency.format(value),
+          formatCurrency.format(value ?? 0.0), // Sử dụng giá trị mặc định nếu value là null
           style: TextStyle(
             fontSize: 16,
             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,

@@ -6,12 +6,46 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final formatCurrency = NumberFormat.currency(
     locale: 'vi_VN', symbol: 'VNĐ'); // Format currency in VND
 
-class CartScreen extends StatelessWidget {
+class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
+
+  @override
+  State<CartScreen> createState() => _CartScreenState();
+}
+
+class _CartScreenState extends State<CartScreen> {
+
+
+  late Future<void> _fetchCartFuture;
+
+  String? userId;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeCart();
+  }
+
+  Future<void> _initializeCart() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      userId = prefs.getString('id'); // Lấy giá trị userId từ SharedPreferences
+
+      if (userId != null && userId!.isNotEmpty) {
+        final cartProvider = Provider.of<CartProvider>(context, listen: false);
+        _fetchCartFuture = cartProvider.fetchCart(userId!);
+      } else {
+        debugPrint('User ID not found in SharedPreferences');
+      }
+    } catch (e) {
+      debugPrint('Failed to initialize cart: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,11 +58,13 @@ class CartScreen extends StatelessWidget {
           return GestureDetector(
             onTap: () {
               if (icon == Icons.add) {
-                provider.incrementQuantity('user_id',  // Pass the actual userId
-                  finalList[index].productId); // Tăng số lượng
+                provider.incrementQuantity(
+                    userId!, // Pass the actual userId
+                    finalList[index].productId); // Tăng số lượng
               } else {
-                provider.decrementQuantity('user_id',  // Pass the actual userId
-                  finalList[index].productId); // Giảm số lượng
+                provider.decrementQuantity(
+                    userId!, // Pass the actual userId
+                    finalList[index].productId); // Giảm số lượng
               }
             },
             child: Icon(icon, size: 20),
@@ -102,8 +138,9 @@ class CartScreen extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     padding: const EdgeInsets.all(10),
-                                    child: Image.network(cartItem
-                                        .imageUrl), // Hiển thị hình ảnh sản phẩm
+                                    child: Image.network(
+                                      cartItem.imageUrl,
+                                    ), // Hiển thị hình ảnh sản phẩm
                                   ),
                                   const SizedBox(width: 10),
                                   Column(
@@ -117,15 +154,16 @@ class CartScreen extends StatelessWidget {
                                           fontSize: 16,
                                         ),
                                       ),
-                                     SizedBox( height: 5,
-                                        ),
-                                        Text(
-                                      '${cartItem.company}',
-                                      style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                       fontSize: 14,
-                                        color: Colors.grey,
+                                      SizedBox(
+                                        height: 5,
                                       ),
+                                      Text(
+                                        '${cartItem.company}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                          color: Colors.grey,
+                                        ),
                                       ),
                                       const SizedBox(height: 10),
                                       Text(
@@ -150,7 +188,9 @@ class CartScreen extends StatelessWidget {
                                 IconButton(
                                   onPressed: () {
                                     provider.removeItem(
-                                        'user_id', cartItem.productId); // Xóa sản phẩm khỏi giỏ hàng
+                                        userId!,
+                                        cartItem
+                                            .productId); // Xóa sản phẩm khỏi giỏ hàng
                                   },
                                   icon: SvgPicture.asset(
                                     'images/icons/recycle-bin-svgrepo-com.svg',
