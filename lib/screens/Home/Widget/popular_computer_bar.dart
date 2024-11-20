@@ -1,6 +1,7 @@
 import 'package:HDTech/Provider/cart_provider.dart';
 import 'package:HDTech/constants.dart';
 import 'package:HDTech/models/computer_model.dart';
+import 'package:HDTech/models/review_model.dart';
 import 'package:HDTech/screens/Auth/login_screen.dart';
 import 'package:HDTech/screens/Detail/detail_screen.dart';
 import 'package:flutter/material.dart';
@@ -234,7 +235,8 @@ class PopularComputerBarState extends State<PopularComputerBar> {
                     crossAxisCount: 2,
                     crossAxisSpacing: 10.0,
                     mainAxisSpacing: 10.0,
-                    childAspectRatio: 0.85,
+                    childAspectRatio:
+                        0.75, // Giảm giá trị childAspectRatio để sản phẩm dài hơn
                   ),
                   itemCount: computers.length,
                   itemBuilder: (context, index) {
@@ -283,7 +285,8 @@ class PopularComputerBarState extends State<PopularComputerBar> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Container(
-                                    height: 100,
+                                    height:
+                                        100, // Tăng chiều cao của hình ảnh sản phẩm
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(12),
                                       image: DecorationImage(
@@ -292,12 +295,12 @@ class PopularComputerBarState extends State<PopularComputerBar> {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(height: 6),
+                                  const SizedBox(height: 8),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 8.0),
                                     child: Text(
-                                      '${computer.company} ${computer.name}', // Concatenate productsTypeName and name
+                                      '${computer.company} ${computer.name}',
                                       style: const TextStyle(
                                         fontSize: 17,
                                         fontWeight: FontWeight.bold,
@@ -321,6 +324,64 @@ class PopularComputerBarState extends State<PopularComputerBar> {
                                       ),
                                     ),
                                   ),
+                                  const SizedBox(height: 6),
+                                  // Hiển thị đánh giá
+                                  FutureBuilder<Map<String, dynamic>>(
+                                    future: fetchReviews(computer.id),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasError) {
+                                        return const Text(
+                                            'Không thể tải đánh giá.');
+                                      } else if (snapshot.hasData) {
+                                        final data = snapshot.data!;
+                                        final averageRating =
+                                            (data['averageRating'] as num)
+                                                .toDouble();
+                                        final reviews =
+                                            data['reviews'] as List<Review>;
+
+                                        return Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Row(
+                                                    children: List.generate(
+                                                      5,
+                                                      (index) => Icon(
+                                                        index <
+                                                                averageRating
+                                                                    .round()
+                                                            ? Icons.star
+                                                            : Icons.star_border,
+                                                        color: Colors.amber,
+                                                        size: 16,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Text(
+                                                    '(${reviews.length})',
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      color: Colors.grey[600],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      } else {
+                                        // Khi đang tải, hiển thị nội dung trống hoặc thông báo đơn giản
+                                        return const SizedBox(); // Hiển thị trống
+                                      }
+                                    },
+                                  ),
                                 ],
                               ),
                             ),
@@ -333,11 +394,13 @@ class PopularComputerBarState extends State<PopularComputerBar> {
                                   if (!_isLoggedIn) {
                                     bool shouldLogin =
                                         await _showLoginDialog(); // Hiển thị hộp thoại
-                                    if (!shouldLogin)
+                                    if (!shouldLogin) {
                                       return; // Nếu người dùng không muốn đăng nhập, không làm gì
+                                    }
                                     await _navigateToLogin(); // Nếu người dùng đồng ý đăng nhập, điều hướng đến màn hình đăng nhập
-                                    if (!_isLoggedIn)
+                                    if (!_isLoggedIn) {
                                       return; // Nếu sau khi đăng nhập, người dùng vẫn chưa đăng nhập, không tiếp tục
+                                    }
                                   }
 
                                   // Lấy userId từ SharedPreferences

@@ -1,9 +1,9 @@
 import 'package:HDTech/models/account_service.dart';
 import 'package:HDTech/models/user_model.dart'; // Assuming you have the User model
 import 'package:HDTech/screens/Menu/Popup_accounts/delete_account.dart';
+import 'package:HDTech/screens/Menu/Popup_accounts/information_app.dart';
 import 'package:HDTech/screens/Menu/Popup_accounts/order_status.dart';
 import 'package:HDTech/screens/Menu/Popup_accounts/update_user_popup.dart'; // Add this import for the popup
-import 'package:HDTech/screens/Menu/Popup_accounts/information_app.dart';
 import 'package:HDTech/screens/nav_bar_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -31,6 +31,8 @@ class _AccountPageState extends State<AccountPage> {
     await prefs.setBool('isLoggedIn', false); // Update login status
     await prefs.remove('email'); // Remove saved email
     await prefs.remove('password'); // Remove saved password
+    await prefs.remove('access_token'); // Remove saved access_token
+    await prefs.remove('id'); // Remove saved id
 
     // Navigate to the login screen
     // ignore: use_build_context_synchronously

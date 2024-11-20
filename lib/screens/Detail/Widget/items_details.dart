@@ -68,7 +68,7 @@ class ItemsDetails extends StatelessWidget {
           _buildDetailRow("RAM: ", popularComputerBar.ram),
           _buildDetailRow("Memory: ", popularComputerBar.memory),
           _buildDetailRow("GPU: ", popularComputerBar.gpu),
-          _buildDetailRow("Weight: ", "${popularComputerBar.weight} kg"),
+          _buildDetailRow("Weight: ", popularComputerBar.weight),
           _buildDetailRow("Operating System: ", popularComputerBar.opsys),
         ],
       ),
