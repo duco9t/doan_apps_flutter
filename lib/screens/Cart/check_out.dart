@@ -127,7 +127,7 @@ class CheckOutBox extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => CheckOutScreen(cartId: userId),
+                          builder: (context) => CheckOutScreen(user_Id: userId),
                         ),
                       );
                     },

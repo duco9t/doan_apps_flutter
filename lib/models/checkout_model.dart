@@ -1,6 +1,7 @@
 import 'package:HDTech/models/cart_model.dart';
 
 class CheckoutDetails {
+  final String cartId;
   final List<CartItem> products;
   final double totalPrice;
   final double vatOrder;
@@ -8,6 +9,7 @@ class CheckoutDetails {
   final double orderTotal;
 
   CheckoutDetails({
+    required this.cartId,
     required this.products,
     required this.totalPrice,
     required this.vatOrder,
@@ -27,8 +29,10 @@ class CheckoutDetails {
 
     // Calculate final order total
     final calculatedOrderTotal = basePrice + calculatedVAT + calculatedShippingFee;
+    final cartId = json['_id'];
 
     return CheckoutDetails(
+      cartId: cartId,
       products: (json['products'] as List)
           .map((item) => CartItem.fromJson(item))
           .toList(),
