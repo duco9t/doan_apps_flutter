@@ -104,10 +104,10 @@ class Order {
       status: json['status'],
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
-      shippingAddress:
-          (json['shippingAddress']['address'] as String?)?.isEmpty ?? true
-              ? 'Not available'
-              : json['shippingAddress']['address'],
+      shippingAddress: (json['shippingAddress'] != null &&
+              json['shippingAddress']['address'] != null)
+          ? json['shippingAddress']['address']
+          : 'Not available',
       products: productList,
     );
   }
