@@ -62,7 +62,7 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
         final productIds =
             checkoutDetails.products.map((p) => p.productId).toList();
         final totalPrice = checkoutDetails.totalPrice.toDouble() ?? 0.0;
-        final vatOrder = checkoutDetails.vatOrder.toDouble() ?? 0.0;
+        final vatOrder = checkoutDetails.VATorder.toDouble() ?? 0.0;
         final shippingFee = checkoutDetails.shippingFee.toDouble() ?? 0.0;
         final orderTotal = checkoutDetails.orderTotal.toDouble() ?? 0.0;
 
@@ -251,6 +251,16 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
       final checkoutDetails =
           await CheckoutService.getCheckoutDetails(widget.user_Id);
       logger.d("Checkout details fetched: $checkoutDetails");
+      // Split address by comma and trim whitespace
+      final addressParts =
+          addressController.text.split(',').map((e) => e.trim()).toList();
+
+      // Prepare shipping address object according to schema
+      final shippingAddress = {
+        'address': addressParts.isNotEmpty ? addressParts[0] : '',
+        'city': addressParts.length > 1 ? addressParts[1] : '',
+        'country': addressParts.length > 2 ? addressParts[2] : 'Việt Nam',
+      };
 
       // Perform your API calls
       final url = Uri.parse('${Config.baseUrl}/order/create');
@@ -266,10 +276,10 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
           'name': nameController.text,
           'phone': phoneController.text,
           'email': emailController.text,
-          'shippingAddress': addressController.text,
+          'shippingAddress': shippingAddress,
           'totalPrice': checkoutDetails.totalPrice,
           'shippingFee': checkoutDetails.shippingFee,
-          'VATorder': checkoutDetails.vatOrder,
+          'VATorder': checkoutDetails.VATorder,
           'orderTotal': checkoutDetails.orderTotal,
           'status': 'Pending',
         }),
@@ -345,14 +355,7 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    nameController.dispose();
-    phoneController.dispose();
-    emailController.dispose();
-    addressController.dispose();
-    super.dispose();
-  }
+ 
 }
 
 class WebViewScreen extends StatelessWidget {

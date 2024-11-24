@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:HDTech/screens/Home/home_screen.dart';
+import 'package:HDTech/screens/nav_bar_screen.dart';
 
 class ResultOrder extends StatelessWidget {
   const ResultOrder({super.key});
@@ -101,7 +101,7 @@ class ResultOrder extends StatelessWidget {
                   onPressed: () {
                      Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
+      MaterialPageRoute(builder: (context) => const BottomNavBar()),
     );
   },
                   style: ElevatedButton.styleFrom(
