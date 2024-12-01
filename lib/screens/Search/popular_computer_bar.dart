@@ -54,15 +54,19 @@ class PopularComputerBarState extends State<PopularComputerBar> {
         return RefreshIndicator(
           onRefresh: _refreshComputers,
           child: GridView.builder(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 20.0), // Add padding for GridView items
+            padding: const EdgeInsets.only(
+              left: 20.0, // Padding bên trái
+              right: 20.0, // Padding bên phải
+              bottom:
+                  70.0, // Padding bên dưới để tránh bị che bởi BottomNavigationBar
+            ),
             shrinkWrap: true,
             physics: const AlwaysScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               crossAxisSpacing: 10.0,
               mainAxisSpacing: 10.0,
-              childAspectRatio: 0.85,
+              childAspectRatio: 0.80,
             ),
             itemCount: filteredComputers.length,
             itemBuilder: (context, index) {
@@ -90,8 +94,7 @@ class _ComputerItemState extends State<ComputerItem> {
 
   @override
   Widget build(BuildContext context) {
-    final formatCurrency =
-        NumberFormat.currency(locale: 'vi_VN', symbol: 'VNĐ');
+    final formatCurrency = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
 
     return GestureDetector(
       onTapDown: (_) => setState(() => scale = 0.95),
@@ -125,6 +128,7 @@ class _ComputerItemState extends State<ComputerItem> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Product Image
                   Container(
                     height: 100,
                     decoration: BoxDecoration(
@@ -136,6 +140,7 @@ class _ComputerItemState extends State<ComputerItem> {
                     ),
                   ),
                   const SizedBox(height: 6),
+                  // Product Name
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Text(
@@ -149,43 +154,63 @@ class _ComputerItemState extends State<ComputerItem> {
                     ),
                   ),
                   const SizedBox(height: 4),
+                  // Price and Discount
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Text(
-                      formatCurrency.format(widget.computer.price),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        color: kprimaryColor,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Discounted Price
+                        Text(
+                          formatCurrency.format(widget.computer.promotionPrice),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            color: kprimaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        // Original Price and Discount Percentage
+                        if (widget.computer.price !=
+                                widget.computer.promotionPrice &&
+                            widget.computer.discount > 0)
+                          Row(
+                            children: [
+                              // Original Price (crossed out)
+                              Text(
+                                formatCurrency.format(widget.computer.price),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                  decoration: TextDecoration.lineThrough,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              // Discount Percentage
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: const Color(
+                                      0xFFFFD0D0), // Light red background
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  '-${widget.computer.discount.toStringAsFixed(0)}%',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
-            // Positioned(
-            //   bottom: 0,
-            //   right: 0,
-            //   child: GestureDetector(
-            //     onTap: () => _addToCart(widget.computer.name),
-            //     child: Container(
-            //       width: 35,
-            //       height: 35,
-            //       decoration: const BoxDecoration(
-            //         color: kprimaryColor,
-            //         borderRadius: BorderRadius.only(
-            //           topLeft: Radius.circular(12),
-            //           bottomRight: Radius.circular(12),
-            //         ),
-            //       ),
-            //       child: const Icon(
-            //         Icons.add,
-            //         color: Colors.white,
-            //         size: 20,
-            //       ),
-            //     ),
-            //   ),
-            // ),
           ],
         ),
       ),

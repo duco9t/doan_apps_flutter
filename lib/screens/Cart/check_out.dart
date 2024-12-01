@@ -1,9 +1,9 @@
 import 'package:HDTech/Provider/cart_provider.dart';
 import 'package:HDTech/constants.dart';
+import 'package:HDTech/screens/Checkout/check_out_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:HDTech/screens/Checkout/check_out_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final formatCurrency = NumberFormat.currency(

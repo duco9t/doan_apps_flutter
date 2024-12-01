@@ -139,7 +139,7 @@ class CustomAppBarState extends State<CustomAppBar> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const Text(
-                  'Store location',
+                  'Your location',
                   style: TextStyle(
                     color: Color(0xFF707B81),
                     fontSize: 14,

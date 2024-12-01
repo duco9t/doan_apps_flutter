@@ -43,85 +43,91 @@ class _DetailScreenState extends State<DetailScreen> {
 
   // Hàm kiểm tra thông tin người dùng và mở dialog đánh giá
   Future<void> _handleReview() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? userId = prefs.getString('id');
-  String? accessToken = prefs.getString('access_token');
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userId = prefs.getString('id');
+    String? accessToken = prefs.getString('access_token');
 
-  if (userId != null && accessToken != null) {
-    // Lấy thông tin người dùng
-    AccountService accountService = AccountService();
-    var userDetails = await accountService.getUserDetails();
+    if (userId != null && accessToken != null) {
+      // Lấy thông tin người dùng
+      AccountService accountService = AccountService();
+      var userDetails = await accountService.getUserDetails();
 
-    if (userDetails != null) {
-      String username = userDetails['name'];
+      if (userDetails != null) {
+        String username = userDetails['name'];
 
-      // Mở dialog Write a Review và truyền các tham số
-      showDialog(
+        // Mở dialog Write a Review và truyền các tham số
+        showDialog(
+          // ignore: use_build_context_synchronously
+          context: context,
+          builder: (context) {
+            return ReviewPopup(
+              productId:
+                  widget.popularComputerBar.id, // Truyền productId vào đây
+              onPostReview: (rating, comment) async {
+                bool success = await ReviewService().addReview(
+                  productId: widget.popularComputerBar.id,
+                  userId: userId,
+                  username: username,
+                  rating: rating,
+                  comment: comment,
+                  token: accessToken,
+                );
+
+                if (success) {
+                  // Nếu đánh giá thành công, làm mới dữ liệu
+                  refreshReviews();
+                  // ignore: use_build_context_synchronously
+                  Navigator.of(context).pop(); // Đóng dialog
+                  // ignore: use_build_context_synchronously
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Review posted successfully!'),
+                      behavior: SnackBarBehavior
+                          .floating, // Đảm bảo SnackBar không đẩy lên
+                      margin: EdgeInsets.fromLTRB(
+                          10, 10, 10, 70), // Thêm khoảng cách dưới
+                    ),
+                  );
+                } else {
+                  // ignore: use_build_context_synchronously
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Failed to post review!'),
+                      behavior: SnackBarBehavior
+                          .floating, // Đảm bảo SnackBar không đẩy lên
+                      margin: EdgeInsets.fromLTRB(
+                          10, 10, 10, 70), // Thêm khoảng cách dưới
+                    ),
+                  );
+                }
+              },
+              onRefreshReviews: refreshReviews, // Truyền hàm làm mới ở đây
+            );
+          },
+        );
+      } else {
         // ignore: use_build_context_synchronously
-        context: context,
-        builder: (context) {
-          return ReviewPopup(
-            productId: widget.popularComputerBar.id, // Truyền productId vào đây
-            onPostReview: (rating, comment) async {
-              bool success = await ReviewService().addReview(
-                productId: widget.popularComputerBar.id,
-                userId: userId,
-                username: username,
-                rating: rating,
-                comment: comment,
-                token: accessToken,
-              );
-
-              if (success) {
-                // Nếu đánh giá thành công, làm mới dữ liệu
-                refreshReviews();
-                // ignore: use_build_context_synchronously
-                Navigator.of(context).pop(); // Đóng dialog
-                // ignore: use_build_context_synchronously
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Review posted successfully!'),
-                    behavior: SnackBarBehavior.floating, // Đảm bảo SnackBar không đẩy lên
-                    margin: EdgeInsets.fromLTRB(10, 10, 10, 70), // Thêm khoảng cách dưới
-                  ),
-                );
-              } else {
-                // ignore: use_build_context_synchronously
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Failed to post review!'),
-                    behavior: SnackBarBehavior.floating, // Đảm bảo SnackBar không đẩy lên
-                    margin: EdgeInsets.fromLTRB(10, 10, 10, 70), // Thêm khoảng cách dưới
-                  ),
-                );
-              }
-            },
-            onRefreshReviews: refreshReviews, // Truyền hàm làm mới ở đây
-          );
-        },
-      );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unable to retrieve user information!'),
+            behavior:
+                SnackBarBehavior.floating, // Đảm bảo SnackBar không đẩy lên
+            margin:
+                EdgeInsets.fromLTRB(10, 10, 10, 70), // Thêm khoảng cách dưới
+          ),
+        );
+      }
     } else {
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Unable to retrieve user information!'),
+          content: Text('No user information found!'),
           behavior: SnackBarBehavior.floating, // Đảm bảo SnackBar không đẩy lên
           margin: EdgeInsets.fromLTRB(10, 10, 10, 70), // Thêm khoảng cách dưới
         ),
       );
     }
-  } else {
-    // ignore: use_build_context_synchronously
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('No user information found!'),
-        behavior: SnackBarBehavior.floating, // Đảm bảo SnackBar không đẩy lên
-        margin: EdgeInsets.fromLTRB(10, 10, 10, 70), // Thêm khoảng cách dưới
-      ),
-    );
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -144,6 +150,7 @@ class _DetailScreenState extends State<DetailScreen> {
             ),
             SliverList(
               delegate: SliverChildListDelegate([
+                const SizedBox(height: 20),
                 MyImageSlider(
                   images: [widget.popularComputerBar.imageUrl],
                   onChange: (index) {

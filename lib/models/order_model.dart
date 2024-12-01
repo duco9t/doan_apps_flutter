@@ -12,30 +12,26 @@ var logger = Logger();
 class Product {
   final String name;
   final int quantity;
-  final double totalPrice;
-  final String productsTypeName;
+  final String company;
   final String imageUrl;
   final int prices;
 
   Product({
     required this.name,
     required this.quantity,
-    required this.totalPrice,
-    required this.productsTypeName,
+    required this.company,
     required this.imageUrl,
     required this.prices,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      name: json['productId']['name'],
-      productsTypeName: json['productId']['productsTypeName'],
-      quantity: json['quantity'],
-      totalPrice:
-          json['quantity'] * (json['productId']['prices'] as num).toDouble(),
-      imageUrl: json['productId']['imageUrl'] as String? ??
-          'https://via.placeholder.com/150', // Correct imageUrl path
-      prices: (json['productId']['prices'] as num).toInt(),
+      name: json['productId']['name'] ?? 'Unknown Product',
+      company: json['productId']['company'] ?? 'Unknown Type',
+      quantity: json['quantity'] ?? 0,
+      imageUrl: json['productId']['imageUrl'] ??
+          'https://via.placeholder.com/150', // URL mặc định
+      prices: (json['productId']['promotionPrice'] as num?)?.toInt() ?? 0,
     );
   }
 }
@@ -76,40 +72,34 @@ class Order {
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
-    var productList = (json['products'] as List)
+    var productList = (json['products'] as List? ?? [])
         .map((product) => Product.fromJson(product))
         .toList();
 
     return Order(
-      id: json['_id'],
-      userId: json['userId'],
-      cartId: json['cartId'],
-      name: (json['name'] as String?)?.isEmpty ?? true
-          ? 'Not available'
-          : json['name'],
-      phone: (json['phone'] as String?)?.isEmpty ?? true
-          ? 'Not available'
-          : json['phone'] ?? 'Not available',
-      email: (json['email'] as String?)?.isEmpty ?? true
-          ? 'Not available'
-          : json['email'],
-      totalPrice:
-          (json['totalPrice'] as num?)?.toDouble() ?? 0.0, // Cập nhật chỗ này
-      shippingFee:
-          (json['shippingFee'] as num?)?.toDouble() ?? 0.0, // Cập nhật chỗ này
-      vatOrder:
-          (json['VATorder'] as num?)?.toDouble() ?? 0.0, // Cập nhật chỗ này
-      orderTotal:
-          (json['orderTotal'] as num?)?.toDouble() ?? 0.0, // Cập nhật chỗ này
-      status: json['status'],
-      createdAt: json['createdAt'],
-      updatedAt: json['updatedAt'],
-      shippingAddress: (json['shippingAddress'] != null &&
-              json['shippingAddress']['address'] != null)
-          ? json['shippingAddress']['address']
-          : 'Not available',
+      id: json['_id'] ?? '',
+      userId: json['userId'] ?? '',
+      cartId: json['cartId'] ?? '',
+      name: json['name'] ?? 'Not available',
+      phone: json['phone'] ?? 'Not available',
+      email: json['email'] ?? 'Not available',
+      totalPrice: _parseDouble(json['totalPrice']),
+      shippingFee: _parseDouble(json['shippingFee']),
+      vatOrder: _parseDouble(json['VAT']),
+      orderTotal: _parseDouble(json['orderTotal']),
+      status: json['status'] ?? 'Unknown',
+      createdAt: json['createdAt'] ?? '',
+      updatedAt: json['updatedAt'] ?? '',
+      shippingAddress: json['shippingAddress'] ?? 'Not available',
       products: productList,
     );
+  }
+
+  static double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return (value as num).toDouble();
   }
 }
 

@@ -4,6 +4,7 @@ class CheckoutDetails {
   final String cartId;
   final List<CartItem> products;
   final double totalPrice;
+  // ignore: non_constant_identifier_names
   final double VATorder;
   final double shippingFee;
   final double orderTotal;
@@ -12,6 +13,7 @@ class CheckoutDetails {
     required this.cartId,
     required this.products,
     required this.totalPrice,
+    // ignore: non_constant_identifier_names
     required this.VATorder,
     required this.shippingFee,
     required this.orderTotal,

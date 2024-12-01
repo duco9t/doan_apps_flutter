@@ -12,7 +12,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../models/config.dart';
 
-final formatCurrency = NumberFormat.currency(locale: 'vi_VN', symbol: 'VNĐ');
+final formatCurrency = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
 
 class CheckOutScreen extends StatefulWidget {
   // ignore: non_constant_identifier_names
@@ -30,6 +30,8 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
   final TextEditingController phoneController = TextEditingController(text: "");
   final TextEditingController emailController = TextEditingController(text: "");
   final TextEditingController addressController =
+      TextEditingController(text: "");
+  final TextEditingController voucherCodeController =
       TextEditingController(text: "");
 
   bool isLoading = false;
@@ -61,10 +63,10 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
         final cartId = checkoutDetails.cartId;
         final productIds =
             checkoutDetails.products.map((p) => p.productId).toList();
-        final totalPrice = checkoutDetails.totalPrice.toDouble() ?? 0.0;
-        final vatOrder = checkoutDetails.VATorder.toDouble() ?? 0.0;
-        final shippingFee = checkoutDetails.shippingFee.toDouble() ?? 0.0;
-        final orderTotal = checkoutDetails.orderTotal.toDouble() ?? 0.0;
+        final totalPrice = checkoutDetails.totalPrice.toDouble();
+        final vatOrder = checkoutDetails.VATorder.toDouble();
+        final shippingFee = checkoutDetails.shippingFee.toDouble();
+        final orderTotal = checkoutDetails.orderTotal.toDouble();
 
         return Scaffold(
           appBar: AppBar(
@@ -78,6 +80,8 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
               },
             ),
           ),
+          resizeToAvoidBottomInset:
+              false, // Ngăn bố cục bị đẩy lên khi bàn phím hiển thị
           body: Stack(
             children: [
               Padding(
@@ -106,6 +110,10 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
                     _buildInputField(
                       "Delivery Address",
                       controller: addressController,
+                    ),
+                    _buildInputField(
+                      "Voucher",
+                      controller: voucherCodeController,
                     ),
                     const SizedBox(height: 20),
                     const Text(
@@ -241,28 +249,30 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
         return;
       }
 
+      // Kiểm tra mã voucher
+      final voucherCode = voucherCodeController.text.trim();
+      logger.i("Voucher Code Entered: $voucherCode"); // Log voucher code
+      if (voucherCode.isNotEmpty) {
+        final isValid = await _validateVoucher(voucherCode);
+        if (!isValid) {
+          _showVoucherDialog(
+              // ignore: use_build_context_synchronously
+              context,
+              "Invalid Voucher",
+              "The voucher code is not valid.");
+          return;
+        }
+      }
+
       setState(() {
         isLoading = true;
       });
 
-      // Log the starting point
-      logger.i("Starting payment process...");
-
       final checkoutDetails =
           await CheckoutService.getCheckoutDetails(widget.user_Id);
-      logger.d("Checkout details fetched: $checkoutDetails");
-      // Split address by comma and trim whitespace
-      final addressParts =
-          addressController.text.split(',').map((e) => e.trim()).toList();
 
-      // Prepare shipping address object according to schema
-      final shippingAddress = {
-        'address': addressParts.isNotEmpty ? addressParts[0] : '',
-        'city': addressParts.length > 1 ? addressParts[1] : '',
-        'country': addressParts.length > 2 ? addressParts[2] : 'Việt Nam',
-      };
+      final shippingAddress = addressController.text;
 
-      // Perform your API calls
       final url = Uri.parse('${Config.baseUrl}/order/create');
       final response = await http.post(
         url,
@@ -276,6 +286,7 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
           'name': nameController.text,
           'phone': phoneController.text,
           'email': emailController.text,
+          'voucherCode': voucherCode,
           'shippingAddress': shippingAddress,
           'totalPrice': checkoutDetails.totalPrice,
           'shippingFee': checkoutDetails.shippingFee,
@@ -287,55 +298,49 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
-        logger.d("Order created successfully: $responseData");
+        logger.i("Response Data: $responseData");
 
         if (responseData['status'] == 'OK') {
-          final orderId = responseData['data']?['_id'] ?? '';
+          final orderId = responseData['data']?['data']?['_id'] ?? '';
+          logger.i("Extracted Order ID: $orderId");
 
           final paymentRequest = PaymentRequest(
             orderId: orderId,
             returnUrl: "https://vnpay.vn/",
           );
-
-          // Log the payment request
-          logger.d("Payment request: $paymentRequest");
+          logger.i("Payment Request: $paymentRequest");
 
           try {
             final paymentResponse =
                 await PaymentService.createPayment(paymentRequest);
-            logger.d("Payment response: $paymentResponse");
+            logger.i("Payment Response: $paymentResponse");
 
-            // Thêm log để kiểm tra paymentURL
-            logger.d("Payment URL: ${paymentResponse.paymentURL}");
-
-            // Chỉ gọi một lần và chuyển hướng đến WebView nếu có URL hợp lệ
-            // ignore: unnecessary_null_comparison
             if (paymentResponse.paymentURL != null) {
-              // ignore: use_build_context_synchronously
+              logger.i("Payment URL: ${paymentResponse.paymentURL}");
               Navigator.of(context).push(MaterialPageRoute(
                 builder: (context) =>
                     WebViewScreen(paymentUrl: paymentResponse.paymentURL),
               ));
             } else {
-              // ignore: use_build_context_synchronously
+              logger.w("Payment URL is null.");
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text(
-                        'Failed to create payment or invalid payment URL')),
+                const SnackBar(content: Text('Failed to create payment URL')),
               );
             }
           } catch (error) {
-            logger.e("Error during payment creation: $error");
-            // ignore: use_build_context_synchronously
+            logger.e("Payment creation failed: $error");
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text("Payment creation failed: $error")),
             );
           }
         } else {
+          logger.e(
+              "Order creation failed with message: ${responseData['message']}");
           throw Exception(responseData['message'] ?? 'Order creation failed');
         }
       } else {
-        logger.e("API Response: ${response.body}");
+        logger.e(
+            "Order creation failed. HTTP Status Code: ${response.statusCode}");
         throw Exception('Order creation failed');
       }
     } catch (error) {
@@ -343,9 +348,6 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
         isLoading = false;
       });
 
-      logger.e("Payment process failed: $error");
-
-      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error.toString()),
@@ -355,7 +357,45 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
     }
   }
 
- 
+  Future<bool> _validateVoucher(String voucherCode) async {
+    // Danh sách mã voucher hợp lệ
+    const validVouchers = [
+      "HDTECH2",
+      "HDTECH5",
+      "HDTECH7",
+      "HDTECH9",
+      "HDTECH10",
+      "HDTECH12",
+      "HDTECH14",
+      "HDTECH15",
+      "HDTECH18",
+      "HDTECH20",
+    ];
+
+    // Kiểm tra nếu mã voucher có trong danh sách hợp lệ
+    if (validVouchers.contains(voucherCode)) {
+      return true;
+    } else {
+      logger.e("Voucher code '$voucherCode' is invalid.");
+      return false;
+    }
+  }
+
+  void _showVoucherDialog(BuildContext context, String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class WebViewScreen extends StatelessWidget {

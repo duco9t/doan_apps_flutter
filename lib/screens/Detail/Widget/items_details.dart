@@ -13,8 +13,7 @@ class ItemsDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Format the price using the Vietnamese currency format
-    final formatCurrency =
-        NumberFormat.currency(locale: 'vi_VN', symbol: 'VNĐ');
+    final formatCurrency = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
 
     return Padding(
       padding: const EdgeInsets.all(10.0), // Overall padding for content
@@ -23,7 +22,7 @@ class ItemsDetails extends StatelessWidget {
         children: [
           // Display productsTypeName before name
           Text(
-            "${popularComputerBar.company} - ${popularComputerBar.name}",
+            "${popularComputerBar.company} ${popularComputerBar.name}",
             style: const TextStyle(
               fontWeight: FontWeight.w800,
               fontSize: 25,
@@ -32,15 +31,56 @@ class ItemsDetails extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          // Product price
-          Text(
-            formatCurrency
-                .format(popularComputerBar.price), // Format price with currency
-            style: const TextStyle(
-              fontWeight: FontWeight.w800,
-              fontSize: 22,
-              color: Colors.red,
-            ),
+          // Product price and discount
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Discounted price
+              Text(
+                formatCurrency.format(popularComputerBar.promotionPrice),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 22,
+                  color: Colors.red,
+                ),
+              ),
+              // Original price and discount percentage
+              if (popularComputerBar.price !=
+                      popularComputerBar.promotionPrice &&
+                  popularComputerBar.discount > 0)
+                Row(
+                  children: [
+                    // Original price (crossed out)
+                    Text(
+                      formatCurrency.format(popularComputerBar.price),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        color: Colors.grey,
+                        decoration: TextDecoration.lineThrough,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Discount percentage
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2), // Padding for better spacing
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFD0D0), // Light red background
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '-${popularComputerBar.discount.toStringAsFixed(0)}%',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+            ],
           ),
           const SizedBox(height: 10),
 

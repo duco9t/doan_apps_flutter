@@ -205,28 +205,31 @@ class OrderDetailPage extends StatelessWidget {
       ),
       child: Column(
         children: [
-          ...products.map((product) => Row(
+          // Map qua danh sách sản phẩm và hiển thị chi tiết từng sản phẩm
+          ...products.map((product) {
+            return Padding(
+              padding: const EdgeInsets.only(
+                  bottom: 8.0), // Khoảng cách giữa các sản phẩm
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Image
+                  // Hình ảnh sản phẩm
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8.0),
                     child: Image.network(
                       product.imageUrl.isEmpty
-                          ? 'https://via.placeholder.com/150' // Placeholder for empty URLs
-                          : product.imageUrl, // Use the image URL directly
-                      width: 40,
-                      height: 40,
+                          ? 'https://via.placeholder.com/150' // Placeholder nếu thiếu URL
+                          : product.imageUrl,
+                      width: 50,
+                      height: 50,
                       fit: BoxFit.cover,
                       loadingBuilder: (BuildContext context, Widget child,
                           ImageChunkEvent? loadingProgress) {
                         if (loadingProgress == null) {
-                          // Log the image URL when loading is completed
                           logger.i(
                               "Image loaded successfully: ${product.imageUrl}");
                           return child;
                         } else {
-                          // Log when the image is loading
                           logger.i("Loading image: ${product.imageUrl}");
                           return Center(
                             child: CircularProgressIndicator(
@@ -240,30 +243,25 @@ class OrderDetailPage extends StatelessWidget {
                       },
                       errorBuilder: (BuildContext context, Object error,
                           StackTrace? stackTrace) {
-                        // Log image loading error
                         logger.e("Error loading image: ${product.imageUrl}",
                             error: error);
                         return Image.asset(
-                            'assets/images/error_placeholder.png'); // Replace with a local error image
+                            'assets/images/error_placeholder.png'); // Hình ảnh lỗi
                       },
                     ),
                   ),
-
-                  const SizedBox(width: 4.0),
-
-                  // Product Type and Name
+                  const SizedBox(width: 8.0),
+                  // Loại sản phẩm và tên sản phẩm
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Type Name
                         Text(
-                          product.productsTypeName,
+                          product.company,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        // Product Name
                         Text(
                           product.name,
                           maxLines: 2,
@@ -272,57 +270,81 @@ class OrderDetailPage extends StatelessWidget {
                       ],
                     ),
                   ),
-
-                  const SizedBox(
-                      width:
-                          8.0), // Add some space between the product and price
-
-                  // Quantity and Price
+                  const SizedBox(width: 8.0),
+                  // Số lượng và giá
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text('Quantity: ${product.quantity}'),
-                      Text(
-                        '${formatPrice(product.prices.toDouble())} VNĐ', // Convert to double
-                      ),
+                      Text('${formatPrice(product.prices.toDouble())} đ'),
                     ],
                   ),
                 ],
-              )),
+              ),
+            );
+          // ignore: unnecessary_to_list_in_spreads
+          }).toList(), // Kết thúc map và chuyển thành danh sách
+
           const Divider(color: Colors.grey),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('Subtotal'),
-              Text('${formatPrice(subtotal)} VNĐ'),
+              Text('${formatPrice(subtotal)} đ'),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('VAT'),
+              Text('${formatPrice(VATorder)} đ'),
             ],
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('Shipping'),
-              Text('${formatPrice(shipping)} VNĐ'),
+              Text('${formatPrice(shipping)} đ'),
             ],
           ),
           const Divider(color: Colors.grey),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('VAT'),
-              Text('${formatPrice(VATorder)} VNĐ'),
+              const Text('Total order'),
+              Text(
+                '${formatPrice(subtotal + VATorder + shipping)} đ',
+              ),
             ],
           ),
           const Divider(color: Colors.grey),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Voucher'),
+              Text(
+                '(-${((1 - totalPrice / (subtotal + VATorder + shipping)) * 100).toStringAsFixed(0)}%)   '
+                '${formatPrice(totalPrice - (subtotal + VATorder + shipping))} đ',
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Total',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                'Total amount',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
               ),
               Text(
-                '${formatPrice(totalPrice)} VNĐ',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                '${formatPrice(totalPrice)} đ',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
               ),
             ],
           ),
@@ -416,18 +438,20 @@ class OrderDetailPage extends StatelessWidget {
             color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            buildStatusBanner(),
-            const SizedBox(height: 16.0),
-            buildOrderDetails(),
-            const SizedBox(height: 16.0),
-            buildProductBill(),
-            const SizedBox(height: 16.0),
-            buildActionButton(context, orderNumber),
-          ],
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              buildStatusBanner(),
+              const SizedBox(height: 16.0),
+              buildOrderDetails(),
+              const SizedBox(height: 16.0),
+              buildProductBill(),
+              const SizedBox(height: 16.0),
+              buildActionButton(context, orderNumber),
+            ],
+          ),
         ),
       ),
     );

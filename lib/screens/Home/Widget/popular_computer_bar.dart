@@ -236,7 +236,7 @@ class PopularComputerBarState extends State<PopularComputerBar> {
                     crossAxisSpacing: 10.0,
                     mainAxisSpacing: 10.0,
                     childAspectRatio:
-                        0.75, // Giảm giá trị childAspectRatio để sản phẩm dài hơn
+                        0.68, // Giảm giá trị childAspectRatio để sản phẩm dài hơn
                   ),
                   itemCount: computers.length,
                   itemBuilder: (context, index) {
@@ -313,17 +313,77 @@ class PopularComputerBarState extends State<PopularComputerBar> {
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 8.0),
-                                    child: Text(
-                                      NumberFormat.currency(
-                                              locale: 'vi_VN', symbol: 'VNĐ')
-                                          .format(computer.price),
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        color: kprimaryColor,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        // Chỉ hiển thị promotionPrice
+                                        Text(
+                                          NumberFormat.currency(
+                                                  locale: 'vi_VN', symbol: 'đ')
+                                              .format(computer.promotionPrice),
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                            color: kPrimaryColor,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        // Giá giảm
+                                        if (computer.price !=
+                                                computer.promotionPrice ||
+                                            computer.discount != 0)
+                                          Row(
+                                            children: [
+                                              // Giá gốc (price) gạch ngang
+                                              if (computer.price !=
+                                                  computer.promotionPrice)
+                                                Text(
+                                                  NumberFormat.currency(
+                                                          locale: 'vi_VN',
+                                                          symbol: 'đ')
+                                                      .format(computer.price),
+                                                  style: const TextStyle(
+                                                    fontSize:
+                                                        13, // Kích thước nhỏ hơn
+                                                    color: Colors
+                                                        .grey, // Màu xám cho giá gốc
+                                                    decoration: TextDecoration
+                                                        .lineThrough, // Gạch ngang giá gốc
+                                                  ),
+                                                ),
+                                              const SizedBox(width: 8),
+                                              if (computer.discount != 0)
+                                                Container(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 6,
+                                                      vertical:
+                                                          2), // Thêm padding để chữ không bị sát viền
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(
+                                                        0xFFFFD0D0), // Nền đỏ nhạt
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            6), // Bo góc nhẹ cho nền
+                                                  ),
+                                                  child: Text(
+                                                    '-${computer.discount.toStringAsFixed(0)}%',
+                                                    style: const TextStyle(
+                                                      fontSize:
+                                                          12, // Chữ nhỏ hơn
+                                                      color:
+                                                          kPrimaryColor, // Màu chữ trắng
+                                                      fontWeight: FontWeight
+                                                          .bold, // In đậm chữ
+                                                    ),
+                                                  ),
+                                                )
+                                            ],
+                                          ),
+                                      ],
                                     ),
                                   ),
+
                                   const SizedBox(height: 6),
                                   // Hiển thị đánh giá
                                   FutureBuilder<Map<String, dynamic>>(

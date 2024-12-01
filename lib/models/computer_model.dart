@@ -23,6 +23,8 @@ class Computer {
   final String productsTypeName; // New field for product type name
   int quantity;
   final String? bannerUrl; // Thêm bannerUrl, có thể null
+  final double discount;
+  final double promotionPrice;
 
   Computer({
     required this.id,
@@ -42,6 +44,8 @@ class Computer {
     required this.productsTypeName,
     this.quantity = 1,
     this.bannerUrl,
+    required this.discount,
+    required this.promotionPrice,
   });
 
   // Add this toJson method to resolve the error
@@ -55,6 +59,8 @@ class Computer {
       'gpu': gpu,
       'memory': memory,
       'price': price,
+      'discount': discount,
+      'promotionPrice': promotionPrice,
     };
   }
 
@@ -81,6 +87,11 @@ class Computer {
           'Unknown Type', // Parsing productsTypeName
       quantity: json['quantity'] ?? 1, // Số lượng khi tạo từ JSON
       bannerUrl: json['bannerUrl'] as String?, // Nếu không có thì null
+      discount:
+          json['discount'] is num ? (json['discount'] as num).toDouble() : 0,
+      promotionPrice: json['promotionPrice'] != null
+          ? (json['promotionPrice'] as num).toDouble()
+          : 0.0,
     );
   }
 }
