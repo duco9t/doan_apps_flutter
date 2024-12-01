@@ -97,39 +97,31 @@ class CartProvider with ChangeNotifier {
   Future<void> incrementQuantity(String userId, String productId) async {
     _logger.i(
         "Tăng số lượng sản phẩm $productId trong giỏ hàng cho người dùng: $userId");
-
     try {
       final index =
           _cartItems.indexWhere((item) => item.productId == productId);
 
-      if (index == -1) {
-        _logger.e("Không tìm thấy sản phẩm trong giỏ hàng");
-        return;
+      if (index != -1) {
+        final currentQuantity = _cartItems[index].quantity;
+        final product = _cartItems[index];
+
+        // Kiểm tra số lượng sản phẩm có vượt quá số lượng tồn kho không
+        if (currentQuantity + 1 > int.parse(product.quantityInStock)) {
+          throw Exception('Số lượng trong kho không đủ');
+        }
+
+        // Tăng số lượng sản phẩm ở phía client
+        _cartItems[index].quantity = currentQuantity + 1;
+
+        // Cập nhật số lượng trong giỏ hàng ở phía server
+        await _cartService.addToCart(
+            userId, productId, _cartItems[index].quantity);
+
+        // Cập nhật UI
+        notifyListeners();
+        _logger.i(
+            "Số lượng sản phẩm $productId đã tăng lên ${_cartItems[index].quantity}");
       }
-
-      final currentQuantity = _cartItems[index].quantity;
-      final product = _cartItems[index];
-
-      // Kiểm tra số lượng sản phẩm có vượt quá số lượng tồn kho không
-      final stockQuantity = int.tryParse(product.quantityInStock) ?? 0;
-
-      if (currentQuantity + 1 > stockQuantity) {
-        _logger.e(
-            "Số lượng trong kho không đủ. Số lượng hiện tại: $stockQuantity");
-        throw Exception('Số lượng trong kho không đủ');
-      }
-
-      // Tăng số lượng sản phẩm ở phía client
-      _cartItems[index].quantity = currentQuantity + 1;
-
-      // Cập nhật số lượng trong giỏ hàng ở phía server
-      await _cartService.updateCartItem(
-          userId, productId, _cartItems[index].quantity);
-
-      // Cập nhật UI
-      notifyListeners();
-      _logger.i(
-          "Số lượng sản phẩm $productId đã tăng lên ${_cartItems[index].quantity}");
     } catch (e) {
       _logger.e("Thêm số lượng sản phẩm $productId vào giỏ hàng thất bại: $e");
     }

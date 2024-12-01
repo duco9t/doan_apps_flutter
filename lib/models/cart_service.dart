@@ -36,7 +36,7 @@ class CartService {
     }
   }
 
-  // Thêm sản phẩm vào giỏ hàng
+    // Thêm sản phẩm vào giỏ hàng
   Future<void> addToCart(String userId, String productId, int quantity) async {
     final url = Uri.parse('${Config.baseUrl}/cart/add-update');
     try {
@@ -61,13 +61,13 @@ class CartService {
 
       if (response.statusCode == 200) {
         // Thành công, có thể làm gì đó sau khi xóa
-        _logger.d('Product deleted successfully');
+        _logger.d('Product added/updated successfully');
       } else {
         // Nếu không thành công, kiểm tra chi tiết trong response.body
         final responseData = jsonDecode(response.body);
         _logger.e(
             'Error deleting product: ${responseData['message'] ?? 'Unknown error'}');
-        throw Exception("Failed to delete product from cart");
+        throw Exception("Failed to add/update product in cart");
       }
     } catch (e) {
       _logger.e('Error adding to cart: $e');
@@ -119,13 +119,13 @@ class CartService {
 
   Future<void> updateCartItem(
       String userId, String productId, int quantity) async {
-    final url = Uri.parse('${Config.baseUrl}/cart/update/$userId/$productId');
+    final url = Uri.parse('${Config.baseUrl}/cart/update');
 
     try {
-      // Sử dụng PUT hoặc PATCH để cập nhật dữ liệu thay vì POST
-      final response = await http.put(
+      // Gọi API POST để thêm hoặc cập nhật sản phẩm trong giỏ
+      final response = await http.post(
         url,
-        body: json.encode({'quantity': quantity}),
+        body: json.encode({'userId': userId, 'productId': productId, 'quantity': quantity}),
         headers: {'Content-Type': 'application/json'},
       );
 
