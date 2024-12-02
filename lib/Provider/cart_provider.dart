@@ -6,7 +6,7 @@ import 'package:logger/logger.dart'; // Import logger
 import 'package:provider/provider.dart';
 
 final formatCurrency = NumberFormat.currency(
-    locale: 'vi_VN', symbol: 'VNĐ'); // Format currency in VND
+    locale: 'vi_VN', symbol: 'đ'); // Format currency in VND
 
 class CartProvider with ChangeNotifier {
   final CartService _cartService = CartService();

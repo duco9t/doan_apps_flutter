@@ -1,10 +1,12 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+
 import 'package:HDTech/models/config.dart';
+import 'package:http/http.dart' as http;
+import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
-import 'package:logger/logger.dart'; 
-import 'package:HDTech/models/cart_model.dart';
+
 import 'checkout_model.dart';
+
 // Create an instance of Logger
 final Logger logger = Logger();
 
@@ -15,7 +17,7 @@ Future<String?> getUserId() async {
 
 class CheckoutService {
   // Get Order Details
-   // Fetch cart details using userId (for checkout)
+  // Fetch cart details using userId (for checkout)
   static Future<CheckoutDetails> getCheckoutDetails(String userId) async {
     final url = Uri.parse('${Config.baseUrl}/cart/get-cart/$userId');
     final response = await http.get(url);
@@ -28,7 +30,4 @@ class CheckoutService {
       throw Exception("Failed to load cart details");
     }
   }
-
-   
-  
 }

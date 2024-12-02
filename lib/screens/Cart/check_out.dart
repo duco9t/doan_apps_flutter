@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final formatCurrency = NumberFormat.currency(
-    locale: 'vi_VN', symbol: 'VNĐ'); // Format currency in VND
+    locale: 'vi_VN', symbol: 'đ'); // Format currency in VND
 
 class CheckOutBox extends StatelessWidget {
   const CheckOutBox({

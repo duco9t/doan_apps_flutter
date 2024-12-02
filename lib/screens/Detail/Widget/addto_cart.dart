@@ -1,3 +1,5 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
+
 import 'package:HDTech/Provider/cart_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:HDTech/constants.dart';
@@ -113,6 +115,8 @@ class _AddToCartState extends State<AddToCart> {
                   bool shouldLogin = await _showLoginDialog(
                       context); // Hiển thị hộp thoại yêu cầu đăng nhập
                   if (!shouldLogin)
+                    // ignore: duplicate_ignore
+                    // ignore: curly_braces_in_flow_control_structures
                     return; // Nếu người dùng không muốn đăng nhập, không làm gì
                   await _navigateToLogin(); // Điều hướng đến màn hình đăng nhập
                   if (!_isLoggedIn)
@@ -131,10 +135,11 @@ class _AddToCartState extends State<AddToCart> {
 
                 // Nếu người dùng đã đăng nhập, thêm sản phẩm vào giỏ hàng
                 final productId = widget.popularComputerBar.id
-                    ?.toString(); // Lấy ID sản phẩm từ đối tượng popularComputerBar
+                    .toString(); // Lấy ID sản phẩm từ đối tượng popularComputerBar
                 final quantity = currentIndex;
 
                 // Gọi CartProvider để thêm sản phẩm vào giỏ hàng
+                // ignore: unnecessary_null_comparison
                 if (productId != null) {
                   provider.addItem(userId, productId, quantity);
                 }
@@ -190,7 +195,7 @@ Future<bool> _showLoginDialog(BuildContext context) async {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // Tiêu đề
-                  Text(
+                  const Text(
                     "Login Required",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
@@ -221,6 +226,7 @@ Future<bool> _showLoginDialog(BuildContext context) async {
                           Navigator.of(context)
                               .pop(false); // Nếu người dùng chọn "No"
                         },
+                        // ignore: sort_child_properties_last
                         child: Text(
                           "No",
                           style: TextStyle(
@@ -244,7 +250,8 @@ Future<bool> _showLoginDialog(BuildContext context) async {
                           Navigator.of(context)
                               .pop(true); // Nếu người dùng chọn "Yes"
                         },
-                        child: Text(
+                        // ignore: sort_child_properties_last
+                        child: const Text(
                           "Yes",
                           style: TextStyle(
                             color: Colors.black,

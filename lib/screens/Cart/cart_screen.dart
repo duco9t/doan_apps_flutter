@@ -139,9 +139,14 @@ class _CartScreenState extends State<CartScreen> {
                                         color: kcontentColor,
                                         borderRadius: BorderRadius.circular(20),
                                       ),
-                                      padding: const EdgeInsets.all(10),
-                                      child: Image.network(
-                                        cartItem.imageUrl,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(
+                                            20), // Bo góc ảnh
+                                        child: Image.network(
+                                          cartItem.imageUrl,
+                                          fit: BoxFit
+                                              .cover, // Giữ tỉ lệ ảnh và bao phủ toàn bộ vùng hiển thị
+                                        ),
                                       ),
                                     ),
                                     const SizedBox(width: 10),
@@ -150,7 +155,9 @@ class _CartScreenState extends State<CartScreen> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          cartItem.name,
+                                          cartItem.name.length > 20
+                                              ? '${cartItem.name.substring(0, 20)}...' // Cắt chuỗi và thêm "..."
+                                              : cartItem.name,
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 16,
@@ -239,6 +246,7 @@ class _CartScreenState extends State<CartScreen> {
                                     },
                                     icon: SvgPicture.asset(
                                       'images/icons/recycle-bin-svgrepo-com.svg',
+                                      // ignore: deprecated_member_use
                                       color: Colors.red,
                                       width: 22,
                                       height: 22,

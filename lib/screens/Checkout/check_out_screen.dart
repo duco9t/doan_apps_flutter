@@ -137,7 +137,8 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
                               style: const TextStyle(fontSize: 16),
                             ),
                             trailing: Text(
-                              formatCurrency.format(product.total.toDouble()),
+                              formatCurrency
+                                  .format(product.promotionPrice.toDouble()),
                               style: const TextStyle(fontSize: 16),
                             ),
                           );
@@ -315,20 +316,24 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
                 await PaymentService.createPayment(paymentRequest);
             logger.i("Payment Response: $paymentResponse");
 
+            // ignore: unnecessary_null_comparison
             if (paymentResponse.paymentURL != null) {
               logger.i("Payment URL: ${paymentResponse.paymentURL}");
+              // ignore: use_build_context_synchronously
               Navigator.of(context).push(MaterialPageRoute(
                 builder: (context) =>
                     WebViewScreen(paymentUrl: paymentResponse.paymentURL),
               ));
             } else {
               logger.w("Payment URL is null.");
+              // ignore: use_build_context_synchronously
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Failed to create payment URL')),
               );
             }
           } catch (error) {
             logger.e("Payment creation failed: $error");
+            // ignore: use_build_context_synchronously
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text("Payment creation failed: $error")),
             );
@@ -348,6 +353,7 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
         isLoading = false;
       });
 
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error.toString()),
