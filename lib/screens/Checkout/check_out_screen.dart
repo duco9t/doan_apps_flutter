@@ -4,10 +4,17 @@ import 'package:HDTech/constants.dart';
 import 'package:HDTech/models/checkout_model.dart';
 import 'package:HDTech/models/checkout_service.dart';
 import 'package:HDTech/models/payment_service.dart';
+import 'package:HDTech/models/user_model.dart';
 import 'package:HDTech/screens/nav_bar_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Để sử dụng Clipboard
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:logger/logger.dart' as logger;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart'; // Để sử dụng launch và canLaunch
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../models/config.dart';
@@ -22,25 +29,136 @@ class CheckOutScreen extends StatefulWidget {
   const CheckOutScreen({super.key, required this.user_Id});
 
   @override
-  State<CheckOutScreen> createState() => _CheckOutScreenState();
+  State<CheckOutScreen> createState() => CheckOutScreenState();
 }
 
-class _CheckOutScreenState extends State<CheckOutScreen> {
-  final TextEditingController nameController = TextEditingController(text: "");
-  final TextEditingController phoneController = TextEditingController(text: "");
-  final TextEditingController emailController = TextEditingController(text: "");
-  final TextEditingController addressController =
-      TextEditingController(text: "");
+class CheckOutScreenState extends State<CheckOutScreen> {
+  late TextEditingController nameController;
+  late TextEditingController emailController;
+  late TextEditingController phoneController;
+  late TextEditingController addressController;
+  late bool isLoading;
   final TextEditingController voucherCodeController =
       TextEditingController(text: "");
-
-  bool isLoading = false;
 
   get shippingAddress => null;
 
   @override
+  void initState() {
+    super.initState();
+    isLoading = true;
+
+    // Khởi tạo các controller nhưng chưa gán giá trị
+    nameController = TextEditingController();
+    emailController = TextEditingController();
+    phoneController = TextEditingController();
+    addressController = TextEditingController();
+
+    _initializeData();
+    _getCurrentLocation();
+  }
+
+  Future<void> _initializeData() async {
+    try {
+      // Lấy dữ liệu người dùng từ UserService
+      final user = await UserService().getUserDetails();
+
+      if (user == null) {
+        logger.Logger().i('Không tìm thấy người dùng.');
+        return;
+      }
+
+      // Gán giá trị cho các controller sau khi lấy dữ liệu người dùng
+      nameController.text = user['name'];
+      emailController.text = user['email'];
+      phoneController.text =
+          user['phone'].toString(); // Chuyển đổi int sang String
+
+      setState(() {
+        isLoading = false;
+      });
+    } catch (e) {
+      logger.Logger().e('Lỗi khi khởi tạo dữ liệu: $e');
+    }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        // ignore: deprecated_member_use
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
+      if (placemarks.isNotEmpty) {
+        final place = placemarks[0];
+        final address =
+            '${place.thoroughfare ?? ''}, ${place.administrativeArea ?? ''}, ${place.subAdministrativeArea ?? ''}';
+        addressController.text = address;
+      } else {
+        addressController.text = 'Unable to fetch address';
+      }
+    } catch (e) {
+      addressController.text = 'Error fetching address';
+    }
+  }
+
+  Future<void> getUserDetails() async {
+    try {
+      // Lấy userId từ SharedPreferences
+      String? userId = await SharedPreferences.getInstance()
+          .then((prefs) => prefs.getString('userId'));
+
+      if (userId == null) {
+        throw Exception("Không tìm thấy UserId trong SharedPreferences");
+      }
+
+      // Lấy access_token từ SharedPreferences
+      String? accessToken = await SharedPreferences.getInstance()
+          .then((prefs) => prefs.getString('accessToken'));
+
+      if (accessToken == null) {
+        throw Exception("Không tìm thấy accessToken trong SharedPreferences");
+      }
+
+      // Giả sử bạn có một phương thức lấy dữ liệu người dùng từ API
+      final userDetails = await fetchUserDetailsFromApi(userId, accessToken);
+
+      if (userDetails == null) {
+        throw Exception("Không tìm thấy dữ liệu người dùng từ API");
+      }
+
+      // Tiến hành sử dụng dữ liệu người dùng
+      logger.Logger()
+          .i("Thông tin người dùng: $userDetails"); // Log voucher code
+    } catch (e) {
+      logger.Logger()
+          .i("⛔ Lỗi khi tải dữ liệu người dùng: $e"); // Log voucher code
+      // Hiển thị thông báo lỗi hoặc thực hiện hành động khác khi có lỗi
+    }
+  }
+
+  Future<Map<String, dynamic>?> fetchUserDetailsFromApi(
+      String userId, String accessToken) async {
+    // Thực hiện yêu cầu API để lấy thông tin người dùng
+    final url = Uri.parse('YOUR_API_URL');
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception("Lỗi khi lấy dữ liệu người dùng từ API");
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return FutureBuilder<CheckoutDetails>(
+    return FutureBuilder<CheckoutDetails?>(
       future: CheckoutService.getCheckoutDetails(widget.user_Id),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -53,7 +171,7 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
           );
         }
 
-        if (!snapshot.hasData || snapshot.data == null) {
+        if (snapshot.data == null) {
           return const Scaffold(
             body: Center(child: Text("Không có dữ liệu!")),
           );
@@ -252,7 +370,8 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
 
       // Kiểm tra mã voucher
       final voucherCode = voucherCodeController.text.trim();
-      logger.i("Voucher Code Entered: $voucherCode"); // Log voucher code
+      logger.Logger()
+          .i("Voucher Code Entered: $voucherCode"); // Log voucher code
       if (voucherCode.isNotEmpty) {
         final isValid = await _validateVoucher(voucherCode);
         if (!isValid) {
@@ -299,52 +418,52 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
-        logger.i("Response Data: $responseData");
+        logger.Logger().i("Response Data: $responseData");
 
         if (responseData['status'] == 'OK') {
           final orderId = responseData['data']?['data']?['_id'] ?? '';
-          logger.i("Extracted Order ID: $orderId");
+          logger.Logger().i("Extracted Order ID: $orderId");
 
           final paymentRequest = PaymentRequest(
             orderId: orderId,
             returnUrl: "https://vnpay.vn/",
           );
-          logger.i("Payment Request: $paymentRequest");
+          logger.Logger().i("Payment Request: $paymentRequest");
 
           try {
             final paymentResponse =
                 await PaymentService.createPayment(paymentRequest);
-            logger.i("Payment Response: $paymentResponse");
+            logger.Logger().i("Payment Response: $paymentResponse");
 
             // ignore: unnecessary_null_comparison
             if (paymentResponse.paymentURL != null) {
-              logger.i("Payment URL: ${paymentResponse.paymentURL}");
+              logger.Logger().i("Payment URL: ${paymentResponse.paymentURL}");
               // ignore: use_build_context_synchronously
               Navigator.of(context).push(MaterialPageRoute(
                 builder: (context) =>
                     WebViewScreen(paymentUrl: paymentResponse.paymentURL),
               ));
             } else {
-              logger.w("Payment URL is null.");
+              logger.Logger().w("Payment URL is null.");
               // ignore: use_build_context_synchronously
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Failed to create payment URL')),
               );
             }
           } catch (error) {
-            logger.e("Payment creation failed: $error");
+            logger.Logger().e("Payment creation failed: $error");
             // ignore: use_build_context_synchronously
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text("Payment creation failed: $error")),
             );
           }
         } else {
-          logger.e(
+          logger.Logger().e(
               "Order creation failed with message: ${responseData['message']}");
           throw Exception(responseData['message'] ?? 'Order creation failed');
         }
       } else {
-        logger.e(
+        logger.Logger().e(
             "Order creation failed. HTTP Status Code: ${response.statusCode}");
         throw Exception('Order creation failed');
       }
@@ -382,7 +501,7 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
     if (validVouchers.contains(voucherCode)) {
       return true;
     } else {
-      logger.e("Voucher code '$voucherCode' is invalid.");
+      logger.Logger().e("Voucher code '$voucherCode' is invalid.");
       return false;
     }
   }
@@ -404,35 +523,110 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
   }
 }
 
-class WebViewScreen extends StatelessWidget {
+class CheckoutModel {
+  final String userId;
+  final String name;
+  final String email;
+  final String phone;
+
+  CheckoutModel(
+      {required this.userId,
+      required this.name,
+      required this.email,
+      required this.phone});
+
+  factory CheckoutModel.fromMap(Map<String, dynamic> map) {
+    return CheckoutModel(
+      userId: map['userId'],
+      name: map['name'],
+      email: map['email'],
+      phone: map['phone'],
+    );
+  }
+}
+
+class WebViewScreen extends StatefulWidget {
   final String paymentUrl;
 
   const WebViewScreen({super.key, required this.paymentUrl});
 
   @override
-  Widget build(BuildContext context) {
-    // Initialize the WebViewController
-    final WebViewController controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse(paymentUrl));
+  // ignore: library_private_types_in_public_api
+  _WebViewScreenState createState() => _WebViewScreenState();
+}
 
+class _WebViewScreenState extends State<WebViewScreen> {
+  late WebViewController controller;
+  late String currentUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..loadRequest(Uri.parse(widget.paymentUrl));
+    currentUrl = widget.paymentUrl;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
-        // Chặn hành động back mặc định
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  const BottomNavBar()), // Thay thế BottomNavBar với trang bạn cần
-          (route) => false, // Xóa tất cả các route trước đó
+          MaterialPageRoute(builder: (context) => const BottomNavBar()),
+          (route) => false,
         );
-        return Future.value(
-            false); // Trả về false để ngừng hành động quay lại mặc định
+        return Future.value(false);
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text("Payment")),
-        body: WebViewWidget(controller: controller),
+        appBar: AppBar(
+          title: const Text("Payment"),
+          actions: [
+            PopupMenuButton<String>(
+              onSelected: (value) async {
+                switch (value) {
+                  case 'Copy URL':
+                    // Copy the current URL to clipboard
+                    await Clipboard.setData(ClipboardData(text: currentUrl));
+                    // ignore: use_build_context_synchronously
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('URL copied to clipboard')),
+                    );
+                    break;
+                  case 'Open in Browser':
+                    // Open the URL in an external browser
+                    // ignore: deprecated_member_use
+                    if (await canLaunch(currentUrl)) {
+                      // ignore: deprecated_member_use
+                      await launch(currentUrl);
+                    } else {
+                      // ignore: use_build_context_synchronously
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Cannot open URL')),
+                      );
+                    }
+                    break;
+                }
+              },
+              itemBuilder: (BuildContext context) {
+                return {'Copy URL', 'Open in Browser'}.map((String choice) {
+                  return PopupMenuItem<String>(
+                    value: choice,
+                    child: Text(choice),
+                  );
+                }).toList();
+              },
+            ),
+          ],
+        ),
+        body: RefreshIndicator(
+          onRefresh: () async {
+            await controller.loadRequest(Uri.parse(currentUrl));
+          },
+          child: WebViewWidget(controller: controller),
+        ),
       ),
     );
   }

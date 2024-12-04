@@ -327,11 +327,7 @@ class _SignUpSceneState extends State<SignUpScene> {
                     ],
                   ),
                 ),
-                // Đường line xám nhạt ở dưới
-                Container(
-                  height: 2, // Chiều cao của đường line
-                  color: Colors.grey[300], // Màu sắc của đường line
-                ),
+              
               ],
             ),
           ),

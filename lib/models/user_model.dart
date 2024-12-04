@@ -40,34 +40,53 @@ class User {
 }
 
 class UserService {
+  // ignore: body_might_complete_normally_nullable
   Future<Map<String, dynamic>?> getUserDetails() async {
+    logger.d('Getting user details...');
+
+    // Get SharedPreferences instance
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userId = prefs.getString('id');
-    logger.d('UserId from SharedPreferences: $userId');
+    String? accessToken = prefs.getString('access_token');
 
-    if (userId == null) {
-      logger.e('UserId is null');
+    // Log values from SharedPreferences
+    logger.d('UserId from SharedPreferences: $userId');
+    logger.d('AccessToken from SharedPreferences: $accessToken');
+
+    if (userId == null || accessToken == null) {
+      logger.e('Either UserId or AccessToken is null');
       return null;
     }
 
+    // Make GET request to API
     final response = await http.get(
       Uri.parse('${Config.baseUrl}/user/get-details/$userId'),
+      headers: {
+        'token': 'Bearer $accessToken', // Thêm dòng này để gửi token
+      },
     );
+
+    // Log status and response
+    logger.d('Response Status Code: ${response.statusCode}');
+    logger.d('Response Body: ${response.body}');
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
       logger.d('API Response: ${jsonResponse.toString()}');
 
-      if (jsonResponse['status'] == 'Success' && jsonResponse['data'] != null) {
+      if (jsonResponse['status'] == 'Oke' && jsonResponse['data'] != null) {
         logger.d('User data retrieved: ${jsonResponse['data']}');
+        // Kiểm tra kỹ các trường trong 'data'
+        if (jsonResponse['data']['_id'] != null) {
+          // Xử lý tiếp
+        } else {
+          logger.e('User data is incomplete');
+        }
         return jsonResponse['data'];
       } else {
-        logger.e('Error in response data');
+        logger.e('Error in response data: ${jsonResponse['massage']}');
         return null;
       }
-    } else {
-      logger.e('Failed to load user data');
-      return null;
     }
   }
 
@@ -75,6 +94,8 @@ class UserService {
     String userId,
     Map<String, dynamic> userData,
   ) async {
+    logger.d('Updating user details...');
+
     if (userId.isEmpty) {
       logger.e('UserId is empty');
       return false;
@@ -87,6 +108,9 @@ class UserService {
       return false;
     }
 
+    logger.d('Stored UserId from SharedPreferences: $storedUserId');
+
+    // Make PUT request to update user details
     final response = await http.put(
       Uri.parse('${Config.baseUrl}/user/update-user/$storedUserId'),
       headers: {
@@ -94,6 +118,10 @@ class UserService {
       },
       body: json.encode(userData),
     );
+
+    // Log status and response
+    logger.d('Response Status Code: ${response.statusCode}');
+    logger.d('Response Body: ${response.body}');
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
@@ -107,7 +135,8 @@ class UserService {
         return false;
       }
     } else {
-      logger.e('Failed to make update request');
+      logger.e(
+          'Failed to make update request with status code: ${response.statusCode}');
       return false;
     }
   }
