@@ -80,11 +80,11 @@
 
 ## 📸 Ảnh Giao Diện Ứng Dụng | App Screenshots
 
-| <img src="img/boot.png" width="100"/><br>Khởi động | <img src="img/wc1.png" width="100"/><br>Welcome 1 | <img src="img/wc2.png" width="100"/><br>Welcome 2 | <img src="img/wc3.png" width="100"/><br>Welcome 3 |
-|:--------------------------------------------------:|:-------------------------------------------------:|:-------------------------------------------------:|:-------------------------------------------------:|
-| <img src="img/sign_up.png" width="100"/><br>Đăng ký | <img src="img/sign_in.png" width="100"/><br>Đăng nhập | <img src="img/otp.png" width="100"/><br>Xác thực OTP | <img src="img/finggerid.png" width="100"/><br>Vân tay |
-| <img src="img/home.png" width="100"/><br>Trang chủ | <img src="img/search.png" width="100"/><br>Tìm kiếm | <img src="img/loc.png" width="100"/><br>Lọc sản phẩm | <img src="img/cart.png" width="100"/><br>Giỏ hàng |
-| <img src="img/order_details.png" width="100"/><br>Chi tiết đơn hàng | <img src="img/settings.png" width="100"/><br>Cài đặt | <img src="img/upd_user_info.png" width="100"/><br>Cập nhật thông tin | <img src="img/write_review.png" width="100"/><br>Viết đánh giá |
+|         <img src="img/boot.png" width="200"/><br>Khởi động          |   <img src="img/wc1.png" width="200"/><br>Welcome 1   |          <img src="img/wc2.png" width="200"/><br>Welcome 2           |       <img src="img/wc3.png" width="200"/><br>Welcome 3        |
+| :-----------------------------------------------------------------: | :---------------------------------------------------: | :------------------------------------------------------------------: | :------------------------------------------------------------: |
+|         <img src="img/sign_up.png" width="200"/><br>Đăng ký         | <img src="img/sign_in.png" width="200"/><br>Đăng nhập |         <img src="img/otp.png" width="200"/><br>Xác thực OTP         |     <img src="img/finggerid.png" width="200"/><br>Vân tay      |
+|         <img src="img/home.png" width="200"/><br>Trang chủ          |  <img src="img/search.png" width="200"/><br>Tìm kiếm  |         <img src="img/loc.png" width="200"/><br>Lọc sản phẩm         |       <img src="img/cart.png" width="200"/><br>Giỏ hàng        |
+| <img src="img/order_details.png" width="200"/><br>Chi tiết đơn hàng | <img src="img/settings.png" width="200"/><br>Cài đặt  | <img src="img/upd_user_info.png" width="200"/><br>Cập nhật thông tin | <img src="img/write_review.png" width="200"/><br>Viết đánh giá |
 
 ---
 
