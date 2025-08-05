@@ -73,5 +73,19 @@
 
 ---
 
+## 📸 Ảnh Giao Diện Ứng Dụng | App Screenshots
+
+| <img src="img/boot.png" width="120"/><br>Khởi động | <img src="img/cart.png" width="120"/><br>Giỏ hàng |
+|:--------------------------------------------------:|:-------------------------------------------------:|
+| <img src="img/finggerid.png" width="120"/><br>Vân tay | <img src="img/home.png" width="120"/><br>Trang chủ |
+| <img src="img/loc.png" width="120"/><br>Lọc sản phẩm | <img src="img/order_details.png" width="120"/><br>Chi tiết đơn hàng |
+| <img src="img/otp.png" width="120"/><br>Xác thực OTP | <img src="img/search.png" width="120"/><br>Tìm kiếm |
+| <img src="img/settings.png" width="120"/><br>Cài đặt | <img src="img/sign_in.png" width="120"/><br>Đăng nhập |
+| <img src="img/sign_up.png" width="120"/><br>Đăng ký | <img src="img/upd_user_info.png" width="120"/><br>Cập nhật thông tin |
+| <img src="img/wc1.png" width="120"/><br>Welcome 1 | <img src="img/wc2.png" width="120"/><br>Welcome 2 |
+| <img src="img/wc3.png" width="120"/><br>Welcome 3 | <img src="img/write_review.png" width="120"/><br>Viết đánh giá |
+
+---
+
 Hãy tải ngay ứng dụng **HDTech** để trải nghiệm thế giới công nghệ laptop ngay trong tầm tay bạn!  
-Download **HDTech** now to explore the world of laptop technology at your fingertips!  
+Download **HDTech** now to explore the world of laptop technology at your fingertips!
